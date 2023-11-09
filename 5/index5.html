@@ -8,18 +8,19 @@
      // Вспомогательный флаг для алгритма
     var sparksOn = true;
      // скорость разлёта частиц, чем меньше, тем быстрее
-    var speed = 30;
+    var speed = 35;
      // коэффициент, имитирующий силу, которая противодействует смщению
      // частиц. Это похоже на ветер, дующий справа-налево и 
      // сдувающий частицы влево
     var power = 5;
     // ***Параметры, которые не следует менять*** 
      // Инициализация параметров рабочей среды
-    var documentWidth = documentHeight = 
-     randomx =
-     randomy = 
-     leftcorner = 
-     topcorner = 0;
+    var documentWidth = 0; 
+    var documentHeight = 0;
+    var randomx = 0;
+    var randomy = 0;
+    var leftcorner = 0; 
+    var topcorner = 0;
      // получение всех слоёв документа
      // про слои можно подробнее прочитать тут: 
      // http://www.comprice.ru/articles/detail.php?ID=42597
@@ -32,6 +33,9 @@
      // массив для 7 частиц фейерверка
     var allDivs = new Array(7);
     var totalSparks = 0;
+    // Положение мышки
+    var mouseX;
+    var mouseY;
     // ***
     // Инициализация параметров фейерверка
     function initAll() 
@@ -46,21 +50,23 @@
          // Ещё один тип планирования вызова в JS, теперь
          // мы можем вызвать функцию регулярно через интервал 
          // intervals
-        setInterval("firework()", intervals);
+        //setInterval("firework()", intervals);
+        firework();
         // вспомогательное действие, если наш браузер - netscape
-        if (ns)
-            document.captureEvents(Event.MOUSEDOWN | Event.MOUSEMOVE);
+         if (ns)
+            document. captureEvents(Event.MOUSEDOWN | Event.MOUSEMOVE);
         // Получение id-элементов для разных браузеров
-        for(dNum = 0; dNum < 7; dNum++) 
-        {
-        if(ie)
-            allDivs[dNum] = eval('document.all.sDiv'+dNum+'.style');
-        else if (ns6)
-            allDivs[dNum] = document.getElementById('sDiv'+dNum).style;
-        else
-            allDivs[dNum] = eval('document.layers["sDiv'+dNum+'"]');
+         for(dNum = 0; dNum < 7; dNum++) {
+            if(ie)
+                allDivs[dNum] = eval('document.all.sDiv'+dNum+'.style');
+            else if (ns6)
+                allDivs[dNum] = document.getElementById('sDiv'+dNum).style;
+            else
+                allDivs[dNum] = eval('document.layers["sDiv'+dNum+'"]');
         }
     }
+
+
     // Преднастройка фейерверка
     function firework() 
     {
@@ -82,8 +88,8 @@
         }
         // получаем координату начала фейерверка в пределах рабочей
          // области
-        randomx = leftcorner+Math.floor(Math.random() * documentWidth);
-        randomy = topcorner+Math.floor(Math.random() * documentHeight);
+        randomx = mouseX;
+        randomy = mouseY;
         // Если разрешили алгоритму работать
         if (sparksOn) 
         {
@@ -98,8 +104,8 @@
                 for (var spark = 0; spark <= 6; spark++) 
                 {
                      // полученеи смещения для каждой конкретной частицы
-                    dx = Math.round(Math.random() * 50);
-                    dy = Math.round(Math.random() * 50);
+                    dx = Math.round(Math.random() * 15);
+                    dy = Math.round(Math.random() * 15);
                      // вызов функции по перемещению частицы в новое место
                     moveTo(spark, randomx, randomy, dx, dy);
                 }
@@ -110,58 +116,56 @@
      // dx, dy - смещение
     function moveTo(i, tempx, tempy, dx, dy) 
     {
-         // превращаем наши абстрактные координаты в конкретное положение на экране в зависимости от браузера
-        if(ie) 
-        {
-            if(tempy+80 > (document.body.offsetHeight+document.body.scrollTop))
-                tempy = document.body.offsetHeight+document.body.scrollTop-80;
-            if(tempx+80 > (document.body.offsetWidth+document.body.scrollLeft))
-                tempx = document.body.offsetWidth+document.body.scrollLeft-80;
-        } 
-        else if (ns6) 
-        {
-            if(tempy+80 > (window.innerHeight+pageYOffset))
-                tempy = window.innerHeight+pageYOffset-80;
-            if(tempx+80 > (window.innerWidth+pageXOffset))
-                tempx = window.innerWidth+pageXOffset-80;
-        }
          
          // если координаты находятся в допустимой области, то
-        if(tempx > -50 && tempy > -50) 
+        if(tempx < innerWidth && tempy > -50) 
         {
-            tempx += dx; // сделать смещение по осям
+            console.log(tempx + ", " + tempy+ " " + i);
+            tempx -= dx; // сделать смещение по осям
             tempy += dy; 
+            console.log(tempx + ", " + tempy+ " " + i);
              // изменить свойства в <div>, чтобы отобразить это смещение
-            allDivs[i].left = tempx;
-            allDivs[i].top = tempy;
+            if (allDivs[i]) 
+            {
+                allDivs[i].left = tempx;
+                allDivs[i].top = tempy;
+            }
              // добавить ветер в смещение
             dx -= power;
             dy -= power;
              // рекурсивно опять вызвать функцию один раз, но с задержкой
              // пока длится задержка, цикл в предыдущей функции сделает остальные итерации, поэтому
              // создастся эффект, что частицы летят одновременно
-            setTimeout("moveTo("+i+","+tempx+","+tempy+","+dx+","+dy+")", speed);
-        } else 
+            
+            setTimeout("moveTo("+i+","+tempx+","+tempy+","+dx+", "+dy+")", speed);
+        } 
+        else 
          // обработали очередную частицу
-        ++totalSparks;
+            ++totalSparks;
          
          // если это была седьмая частица, то вернуть флаги для следующего фейерверка
         if(totalSparks == 7) 
         {
-        sparksAflyin = false;
-        totalSparks = 0;
+            sparksAflyin = false;
+            totalSparks = 0;
         }
     }
      
      // запуск скрипта
-    window.onload=initAll;
-    </script>
-    <!--
-    Таблица стилей CSS для каждого элемента.
-     Про z-index можете прочитать тут: 
-     http://htmlbook.ru/css/z-index
-    -->
-    <style>
+    window.onload = function() {
+        document.addEventListener('click', function () {
+            mouseX = parseInt(event.clientX);
+            mouseY = parseInt(event.clientY);
+            initAll();
+         })
+    };
+</script>
+<!--
+Таблица стилей CSS для каждого элемента.
+ Про z-index можете прочитать тут: 
+ http://htmlbook.ru/css/z-index
+-->
+<style>
     #sDiv0 {position:absolute; height:1; width:1; 
      font-family:arial black; font-size:15px; color:Aqua; z-index:9;}
     #sDiv1 {position:absolute; height:1; width:1; 
